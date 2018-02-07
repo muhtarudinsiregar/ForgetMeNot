@@ -2,10 +2,12 @@ package com.example.ardin.forgetmenot
 
 import android.annotation.TargetApi
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
@@ -56,13 +58,33 @@ class MainActivity : AppCompatActivity() {
 
         taskListView.adapter = adapter
 
-        taskListView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id -> }
-
+        taskListView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
+            taskSelected(position)
+        }
         val savedList = getSharedPreferences(PREFS_TASKS, Context.MODE_PRIVATE).getString(KEY_TASK_LIST, null)
         if (savedList != null) {
             val items = savedList.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             taskList.addAll(items)
         }
+    }
+
+    private fun taskSelected(position: Int) {
+        AlertDialog.Builder(this)
+                .setTitle(R.string.alert_title)
+                .setMessage(taskList[position])
+                .setPositiveButton(R.string.delete, { _, _ ->
+                    taskList.removeAt(position)
+                    adapter.notifyDataSetChanged()
+                })
+                .setNegativeButton(R.string.cancel, { dialog, _ ->
+                    dialog.cancel()
+                })
+                .create()
+                .show()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
     }
 
     override fun onResume() {
