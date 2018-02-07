@@ -60,8 +60,10 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        //update timestampt for textView
         dateTimeTextView.text = getCurrentTimestamps()
 
+        //register broadcast reciever every minute
         registerReceiver(tickReceiver, IntentFilter(Intent.ACTION_TIME_TICK))
     }
 
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
 
         try {
+            //unregister receiver when on pause, agar tidak overhead system
             unregisterReceiver(tickReceiver)
         } catch (e: IllegalArgumentException) {
             Log.e(MainActivity.LOG_TAG, "time tick reciever not registered", e)
