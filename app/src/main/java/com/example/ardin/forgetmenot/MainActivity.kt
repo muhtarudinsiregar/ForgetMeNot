@@ -21,6 +21,8 @@ class MainActivity : AppCompatActivity() {
     private val taskList: MutableList<String> = mutableListOf()
     private val adapter by lazy { makeAdapter(taskList) }
     private val ADD_TASK_REQUEST = 1
+    private val PREFS_TASKS = "prefs_tasks"
+    private val KEY_TASK_LIST = "tasks_list"
 
     private val tickReceiver by lazy { makeBroadcastReceiver() }
 
@@ -55,6 +57,12 @@ class MainActivity : AppCompatActivity() {
         taskListView.adapter = adapter
 
         taskListView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id -> }
+
+        val savedList = getSharedPreferences(PREFS_TASKS, Context.MODE_PRIVATE).getString(KEY_TASK_LIST, null)
+        if (savedList != null) {
+            val items = savedList.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            taskList.addAll(items)
+        }
     }
 
     override fun onResume() {
@@ -76,6 +84,19 @@ class MainActivity : AppCompatActivity() {
         } catch (e: IllegalArgumentException) {
             Log.e(MainActivity.LOG_TAG, "time tick reciever not registered", e)
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        val savedList = StringBuilder()
+        for (task in taskList) {
+            savedList.append(task)
+            savedList.append(",")
+        }
+
+        getSharedPreferences(PREFS_TASKS, Context.MODE_PRIVATE).edit()
+                .putString(KEY_TASK_LIST, savedList.toString()).apply()
     }
 
     fun addTaskClicked(view: View) {
